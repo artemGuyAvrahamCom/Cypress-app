@@ -20,13 +20,13 @@ jobs:
         with:
           runTests: false
       # report machine parameters
-      - run: yarn cypress info
+      - run: npm run cypress info
       - run: node --version
       - run: node -p 'os.cpus()'
-      - run: yarn types
-      - run: yarn lint
-      - run: yarn test:unit:ci
-      - run: yarn build:ci
+      - run: npm run types
+      - run: npm run lint
+      - run: npm run test:unit:ci
+      - run: npm run build:ci
 
       - name: Save build folder
         uses: actions/upload-artifact@v3
@@ -46,12 +46,12 @@ jobs:
         with:
           runTests: false
       # report machine parameters
-      - run: yarn cypress info
+      - run: npm run cypress info
       - run: node -p 'os.cpus()'
-      - run: yarn types
-      - run: yarn lint
-      - run: yarn test:unit:ci
-      - run: yarn build:ci
+      - run: npm run types
+      - run: npm run lint
+      - run: npm run test:unit:ci
+      - run: npm run build:ci
 
       - name: Save build folder
         uses: actions/upload-artifact@v3
@@ -98,7 +98,7 @@ jobs:
       - name: "UI Tests - Chrome"
         uses: cypress-io/github-action@v4
         with:
-          start: yarn start:ci
+          start: npm run start:ci
           wait-on: "http://localhost:3000"
           wait-on-timeout: 120
           browser: chrome
@@ -145,7 +145,7 @@ jobs:
         uses: cypress-io/github-action@v4
         with:
           config: "viewportWidth=375,viewportHeight=667"
-          start: yarn start:ci
+          start: npm run start:ci
           wait-on: "http://localhost:3000"
           wait-on-timeout: 120
           browser: chrome
@@ -190,7 +190,7 @@ jobs:
       - name: "UI Tests - Firefox"
         uses: cypress-io/github-action@v4
         with:
-          start: yarn start:ci
+          start: npm run start:ci
           wait-on: "http://localhost:3000"
           wait-on-timeout: 120
           browser: firefox
@@ -236,7 +236,7 @@ jobs:
         uses: cypress-io/github-action@v4
         with:
           config: "viewportWidth=375,viewportHeight=667"
-          start: yarn start:ci
+          start: npm run start:ci
           wait-on: "http://localhost:3000"
           wait-on-timeout: 120
           browser: firefox
@@ -278,7 +278,7 @@ jobs:
       - name: "UI Tests - Electron - Windows"
         uses: cypress-io/github-action@v4
         with:
-          start: yarn start:ci
+          start: npm run start:ci
           wait-on: "http://localhost:3000"
           wait-on-timeout: 120
           record: true
