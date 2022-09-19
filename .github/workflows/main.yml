@@ -1,11 +1,10 @@
-name: Parallel Cypress Tests
+name: Cypress Tests
 
 on: [push]
 
 jobs:
-  test:
-    name: Cypress run
-    runs-on: ubuntu-20.04
+  cypress-run:
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
@@ -14,13 +13,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-
+      # Install NPM dependencies, cache them correctly
+      # and run all Cypress tests
       - name: Cypress run
-        uses: cypress-io/github-action@v2
+        uses: cypress-io/github-action@v4.x.x # use the explicit version number
         with:
+          build: npm run build
+          start: npm start
           record: true
           parallel: true
           group: "Actions example"
-        env:
-          CYPRESS_RECORD_KEY: ${{ secrets.RECORD_KEY }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
