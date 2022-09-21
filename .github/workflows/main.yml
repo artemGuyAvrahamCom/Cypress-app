@@ -1,62 +1,43 @@
-name: Cypress Tests with installation job
+name: CI
 
 on: [push]
 
+env:
+  NODE_ENV: test
+  DATABASE_URL: postgresql://postgres:postgres@localhost/myapp_test?schema=ci
+
 jobs:
-  install:
+  build:
+    name: Build
     runs-on: ubuntu-latest
-    container: cypress/browsers:node12.18.3-chrome87-ff82
     steps:
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Cypress install
-        uses: cypress-io/github-action@v4 # use the explicit version number
+      - name: Setup Node
+        uses: actions/setup-node@v2.1.2
         with:
-          # Disable running of tests within install job
-          runTests: false
-          build: yarn build
+          node-version: 16.13.2
+          cache: yarn
 
+      - name: Install packages
+        run: yarn install --frozen-lockfile
+
+      - name: ESLint
+        run: yarn lint
+
+      - name: Check TypeScript
+        run: yarn typecheck
+
+      # Build app
+      - name: Build App
+        run: yarn build
+
+      # Save build for other jobs
       - name: Save build folder
         uses: actions/upload-artifact@v2
         with:
-          name: build
+          name: the-build
           if-no-files-found: error
           path: build
-  ui-chrome-tests:
-    runs-on: ubuntu-latest
-    container: cypress/browsers:node12.18.3-chrome87-ff82
-    needs: install
-    strategy:
-      fail-fast: false
-      matrix:
-        # run copies of the current job in parallel
-        containers: [1, 2, 3, 4, 5]
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Download the build folders
-        uses: actions/download-artifact@v2
-        with:
-          name: build
-          path: build
-
-      - name: "UI Tests - Chrome"
-        uses: cypress-io/github-action@v4 # use the explicit version number
-        with:
-          # we have already installed all dependencies above
-          install: true
-          start: npm run start
-          wait-on: "http://localhost:3000"
-          wait-on-timeout: 120
-          browser: chrome
-          record: true
-          parallel: true
-          group: "UI - Chrome"
-          spec: cypress/e2e/*
-        env:
-          CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
-          # Recommended: pass the GitHub token lets this action correctly
-          # determine the unique run id necessary to re-run the checks
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          retention-days: 1
