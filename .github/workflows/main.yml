@@ -1,44 +1,62 @@
-name: E2E Testing
+name: Cypress Tests with installation job
+
 on: [push]
+
 jobs:
   install:
     runs-on: ubuntu-latest
+    container: cypress/browsers:node12.18.3-chrome87-ff82
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Install
-        uses: cypress-io/github-action@v2
+
+      - name: Cypress install
+        uses: cypress-io/github-action@v4 # use the explicit version number
         with:
+          # Disable running of tests within install job
           runTests: false
-      - name: Run CRA Build
-        run: yarn build
-      - name: Save Cypress artifacts
+          build: yarn build
+
+      - name: Save build folder
         uses: actions/upload-artifact@v2
         with:
           name: build
           if-no-files-found: error
           path: build
-  e2e_tests:
+  ui-chrome-tests:
     runs-on: ubuntu-latest
+    container: cypress/browsers:node12.18.3-chrome87-ff82
     needs: install
-    container: cypress/browsers:node14.17.0-chrome91-ff89
     strategy:
       fail-fast: false
       matrix:
-        containers: [spec-1.cy, spec-2.cy, spec-3.cy, spec-4.cy]
+        # run copies of the current job in parallel
+        containers: [1, 2, 3, 4, 5]
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Download Cypress artifacts
+
+      - name: Download the build folders
         uses: actions/download-artifact@v2
         with:
           name: build
           path: build
-      - name: Cypress Test
-        uses: cypress-io/github-action@v2
+
+      - name: "UI Tests - Chrome"
+        uses: cypress-io/github-action@v4 # use the explicit version number
         with:
-          spec: cypress/e2e/${{ matrix.containers }}.js
+          # we have already installed all dependencies above
+          install: true
+          start: npm run start
+          wait-on: "http://localhost:3000"
+          wait-on-timeout: 120
           browser: chrome
-          start: yarn start
+          record: true
+          parallel: true
+          group: "UI - Chrome"
+          spec: cypress/e2e/*
         env:
+          CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
+          # Recommended: pass the GitHub token lets this action correctly
+          # determine the unique run id necessary to re-run the checks
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
