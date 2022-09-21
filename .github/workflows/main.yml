@@ -25,7 +25,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        containers: [homepage, contact-form, seo]
+        containers: [spec-1.cy, spec-2.cy, spec-3.cy, spec-4.cy]
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -37,7 +37,7 @@ jobs:
       - name: Cypress Test
         uses: cypress-io/github-action@v2
         with:
-          spec: cypress/integration/${{ matrix.containers }}.js
+          spec: cypress/e2e/${{ matrix.containers }}.js
           browser: chrome
           start: yarn start
         env:
