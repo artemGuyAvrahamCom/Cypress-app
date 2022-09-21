@@ -41,3 +41,73 @@ jobs:
           if-no-files-found: error
           path: build
           retention-days: 1
+  e2e:
+  name: e2e Tests
+  runs-on: ubuntu-latest
+  needs: build
+
+  services:
+    postgres:
+      image: postgres:13.2
+      ports: ["5432:5432"]
+      # Make sure the database is ready before we use it
+      options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+      # These need to be set on the service or it won't start for some reason
+      env:
+        POSTGRES_USER: postgres
+        POSTGRES_PASSWORD: postgres
+        POSTGRES_DB: myapp_test
+
+  steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Download the build
+      uses: actions/download-artifact@v2
+      with:
+        name: the-build
+        path: build
+
+    - name: Setup Node
+      uses: actions/setup-node@v2.1.2
+      with:
+        node-version: 16.13.2
+        cache: yarn
+
+    - name: Install packages
+      run: yarn install --frozen-lockfile
+
+    - name: Run Cypress e2e tests
+      uses: cypress-io/github-action@v4
+      with:
+        # we have already installed all dependencies above
+        install: false
+        start: yarn test:server
+        wait-on: "http://localhost:3001"
+        command: yarn cypress run
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Upload Cypress Screenshots
+      uses: actions/upload-artifact@v1
+      # Only capture images on failure
+      if: failure()
+      with:
+        name: cypress-screenshots
+        path: cypress/screenshots
+
+    - name: Upload Cypress Logs
+      uses: actions/upload-artifact@v1
+      # Only capture logs on failure
+      if: failure()
+      with:
+        name: cypress-logs
+        path: cypress/logs
+
+    - name: Upload Cypress Videos
+      uses: actions/upload-artifact@v1
+      # Only capture videos on failure
+      if: failure()
+      with:
+        name: cypress-videos
+        path: cypress/videos
